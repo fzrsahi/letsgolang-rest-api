@@ -2,9 +2,9 @@
 
 #### TODO :
 
-- [ ] Install and configure GO
-- [ ] Run Go App
-- [ ] Understanding syntax, data structure, interface
+- [x] Install and configure GO
+- [x] Run Go App
+- [x] Understanding syntax, data structure, interface
 - [ ] Create Rest API
 - [ ] Implement Postgres For Database
 - [ ] Insert Data
