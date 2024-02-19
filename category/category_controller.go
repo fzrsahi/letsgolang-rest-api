@@ -30,7 +30,7 @@ func (controller *CategoryControllerImpl) Create(writer http.ResponseWriter, req
 
 	data := controller.CategoryService.Create(request.Context(), categoryRequest)
 	result := helpers.ApiResponse{
-		StatusCode: "201",
+		StatusCode: 201,
 		Data:       data,
 	}
 
@@ -50,7 +50,7 @@ func (controller *CategoryControllerImpl) Update(writer http.ResponseWriter, req
 
 	data := controller.CategoryService.Update(request.Context(), categoryUpdateRequest)
 	result := helpers.ApiResponse{
-		StatusCode: "201",
+		StatusCode: 201,
 		Data:       data,
 	}
 	helpers.WriteToResponse(writer, result, 201)
@@ -63,7 +63,7 @@ func (controller *CategoryControllerImpl) Delete(writer http.ResponseWriter, req
 
 	controller.CategoryService.Delete(request.Context(), res)
 	result := helpers.ApiResponse{
-		StatusCode: "200",
+		StatusCode: 200,
 		Data:       nil,
 	}
 	helpers.WriteToResponse(writer, result, 201)
@@ -77,7 +77,7 @@ func (controller *CategoryControllerImpl) FindById(writer http.ResponseWriter, r
 
 	data := controller.CategoryService.FindById(request.Context(), res)
 	result := helpers.ApiResponse{
-		StatusCode: "200",
+		StatusCode: 200,
 		Data:       data,
 	}
 	helpers.WriteToResponse(writer, result, 200)
@@ -87,7 +87,7 @@ func (controller *CategoryControllerImpl) FindById(writer http.ResponseWriter, r
 func (controller *CategoryControllerImpl) FindAll(writer http.ResponseWriter, request *http.Request, params httprouter.Params) {
 	categoryResponses := controller.CategoryService.FindAll(request.Context())
 	result := helpers.ApiResponse{
-		StatusCode: "200",
+		StatusCode: 200,
 		Data:       categoryResponses,
 	}
 	helpers.WriteToResponse(writer, result, 200)

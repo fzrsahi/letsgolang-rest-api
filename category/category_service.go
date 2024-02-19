@@ -6,6 +6,7 @@ import (
 	"task-one/category/dto"
 	"task-one/category/model"
 	"task-one/category/response"
+	"task-one/exception"
 	"task-one/helpers"
 )
 
@@ -52,6 +53,9 @@ func (service *CategoryServiceImpl) Update(ctx context.Context, request *dto.Cat
 	defer helpers.CommitOrRollback(tx)
 
 	category, err := service.Repository.FindById(ctx, tx, request.Id)
+	if err != nil {
+		panic(exception.NewNotFoundError(err.Error()))
+	}
 	category.Name = request.Name
 	category = service.Repository.Update(ctx, tx, category)
 
@@ -64,7 +68,9 @@ func (service *CategoryServiceImpl) Delete(ctx context.Context, categoryId int) 
 	defer helpers.CommitOrRollback(tx)
 
 	category, err := service.Repository.FindById(ctx, tx, categoryId)
-	helpers.PanicIfError(err)
+	if err != nil {
+		panic(exception.NewNotFoundError(err.Error()))
+	}
 
 	service.Repository.Delete(ctx, tx, category.Id)
 }
@@ -75,7 +81,9 @@ func (service *CategoryServiceImpl) FindById(ctx context.Context, categoryId int
 	defer helpers.CommitOrRollback(tx)
 
 	category, err := service.Repository.FindById(ctx, tx, categoryId)
-	helpers.PanicIfError(err)
+	if err != nil {
+		panic(exception.NewNotFoundError(err.Error()))
+	}
 
 	return helpers.ToCategoryResponse(category)
 }
