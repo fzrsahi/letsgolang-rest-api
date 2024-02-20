@@ -17,18 +17,18 @@ type CategoryController interface {
 }
 
 type CategoryControllerImpl struct {
-	CategoryService CategoryService
+	Service CategoryService
 }
 
 func NewCategoryController(categoryService CategoryService) CategoryController {
-	return &CategoryControllerImpl{CategoryService: categoryService}
+	return &CategoryControllerImpl{Service: categoryService}
 }
 
 func (controller *CategoryControllerImpl) Create(writer http.ResponseWriter, request *http.Request, params httprouter.Params) {
 	categoryRequest := &dto.CategoryCreateDto{}
 	helpers.ReadFromRequestBody(request, categoryRequest)
 
-	data := controller.CategoryService.Create(request.Context(), categoryRequest)
+	data := controller.Service.Create(request.Context(), categoryRequest)
 	result := helpers.ApiResponse{
 		StatusCode: 201,
 		Data:       data,
@@ -48,7 +48,7 @@ func (controller *CategoryControllerImpl) Update(writer http.ResponseWriter, req
 
 	categoryUpdateRequest.Id = res
 
-	data := controller.CategoryService.Update(request.Context(), categoryUpdateRequest)
+	data := controller.Service.Update(request.Context(), categoryUpdateRequest)
 	result := helpers.ApiResponse{
 		StatusCode: 201,
 		Data:       data,
@@ -61,7 +61,7 @@ func (controller *CategoryControllerImpl) Delete(writer http.ResponseWriter, req
 	res, err := strconv.Atoi(categoryId)
 	helpers.PanicIfError(err)
 
-	controller.CategoryService.Delete(request.Context(), res)
+	controller.Service.Delete(request.Context(), res)
 	result := helpers.ApiResponse{
 		StatusCode: 200,
 		Data:       nil,
@@ -75,7 +75,7 @@ func (controller *CategoryControllerImpl) FindById(writer http.ResponseWriter, r
 	res, err := strconv.Atoi(categoryId)
 	helpers.PanicIfError(err)
 
-	data := controller.CategoryService.FindById(request.Context(), res)
+	data := controller.Service.FindById(request.Context(), res)
 	result := helpers.ApiResponse{
 		StatusCode: 200,
 		Data:       data,
@@ -85,7 +85,7 @@ func (controller *CategoryControllerImpl) FindById(writer http.ResponseWriter, r
 }
 
 func (controller *CategoryControllerImpl) FindAll(writer http.ResponseWriter, request *http.Request, params httprouter.Params) {
-	categoryResponses := controller.CategoryService.FindAll(request.Context())
+	categoryResponses := controller.Service.FindAll(request.Context())
 	result := helpers.ApiResponse{
 		StatusCode: 200,
 		Data:       categoryResponses,

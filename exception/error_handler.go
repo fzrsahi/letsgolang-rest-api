@@ -1,6 +1,7 @@
 package exception
 
 import (
+	"fmt"
 	"net/http"
 	"task-one/helpers"
 )
@@ -40,5 +41,6 @@ func internalServerError(writer http.ResponseWriter, request *http.Request, err 
 		Data:       nil,
 	}
 
+	fmt.Println(err)
 	helpers.WriteToResponse(writer, apiResponse, http.StatusInternalServerError)
 }
