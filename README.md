@@ -11,6 +11,6 @@
 - [x] Read Data
 - [x] Delete Data
 - [x] Update Data
+- [x] Add Unit Test
 - [ ] Implement Redis
 - [ ] Implement JWT for Auth
-- [ ] Add Unit Test
