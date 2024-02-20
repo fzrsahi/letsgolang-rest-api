@@ -24,6 +24,7 @@ func loadEnv() {
 type DBConfig struct {
 	Connection string
 	URI        string
+	Test_URI   string
 }
 
 type AppConfig struct {
@@ -40,12 +41,14 @@ func GetConfig() *Config {
 
 	dbDriver := os.Getenv("DB_DRIVER")
 	dbUri := os.Getenv("DB_URI")
+	dbTestUri := os.Getenv("DB_TEST_URI")
 	port := os.Getenv("PORT")
 
 	return &Config{
 		DB: &DBConfig{
 			Connection: dbDriver,
 			URI:        dbUri,
+			Test_URI:   dbTestUri,
 		},
 		AppConfig: &AppConfig{
 			Port: port,

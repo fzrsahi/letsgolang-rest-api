@@ -1,6 +1,6 @@
 version: '3.8'
 services:
-  dev-db:
+  db:
     image: postgres:alpine3.18
     ports:
       - 5434:5432
@@ -8,3 +8,12 @@ services:
       POSTGRES_USER: fzrsahi
       POSTGRES_PASSWORD: 123
       POSTGRES_DB: task_one_dikti
+
+  dev:
+    image: postgres:alpine3.18
+    ports:
+      - 5435:5432
+    environment:
+      POSTGRES_USER: fzrsahi
+      POSTGRES_PASSWORD: 123
+      POSTGRES_DB: task_one_dikti_dev

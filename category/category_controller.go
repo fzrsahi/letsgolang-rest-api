@@ -66,7 +66,7 @@ func (controller *CategoryControllerImpl) Delete(writer http.ResponseWriter, req
 		StatusCode: 200,
 		Data:       nil,
 	}
-	helpers.WriteToResponse(writer, result, 201)
+	helpers.WriteToResponse(writer, result, 200)
 
 }
 

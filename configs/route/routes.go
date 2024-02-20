@@ -7,11 +7,12 @@ import (
 	"task-one/exception"
 )
 
-var Router *httprouter.Router = httprouter.New()
+func NewRouter() *httprouter.Router {
+	var Router *httprouter.Router = httprouter.New()
 
-func init() {
 	db := database.ConnectToDb()
 	category.RegisterRoute(Router, db)
 
 	Router.PanicHandler = exception.ErrorHandler
+	return Router
 }

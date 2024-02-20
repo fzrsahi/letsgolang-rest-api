@@ -22,3 +22,17 @@ func ConnectToDb() *sql.DB {
 	return db
 
 }
+
+func ConnectToDbTest() *sql.DB {
+
+	env := helpers.GetConfig()
+
+	db, err := sql.Open(env.DB.Connection, env.DB.Test_URI)
+	helpers.PanicIfError(err)
+
+	db.SetMaxIdleConns(5)
+	db.SetMaxOpenConns(20)
+	db.SetConnMaxLifetime(60 * time.Minute)
+
+	return db
+}

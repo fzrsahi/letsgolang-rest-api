@@ -9,13 +9,14 @@ import (
 )
 
 func main() {
+	router := route.NewRouter()
 	env := helpers.GetConfig()
 
 	PORT := env.AppConfig.Port
 
 	server := http.Server{
 		Addr:    PORT,
-		Handler: route.Router,
+		Handler: router,
 	}
 
 	log.Println("Server Running On : http://" + PORT)
