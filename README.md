@@ -13,6 +13,6 @@
 - [x] Update Data
 - [x] Add Unit Test
 - [x] CRUD Category
-- [ ] CRUD Product
+- [x] CRUD Product
 - [ ] Implement Redis
 - [ ] Implement JWT for Auth
