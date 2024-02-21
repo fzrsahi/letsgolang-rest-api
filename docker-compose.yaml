@@ -3,7 +3,9 @@ services:
   db:
     image: postgres:alpine3.18
     ports:
-      - 5434:5432
+      - "5434:5432"
+    volumes:
+      - ./data:/var/lib/postgresql/data
     environment:
       POSTGRES_USER: fzrsahi
       POSTGRES_PASSWORD: 123
@@ -12,7 +14,9 @@ services:
   dev:
     image: postgres:alpine3.18
     ports:
-      - 5435:5432
+      - "5435:5432"
+    volumes:
+      - ./data_dev:/var/lib/postgresql/data
     environment:
       POSTGRES_USER: fzrsahi
       POSTGRES_PASSWORD: 123

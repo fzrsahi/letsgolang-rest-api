@@ -35,6 +35,11 @@ func (service *ProductServiceImpl) Create(ctx context.Context, request *dto.Prod
 
 	defer helpers.CommitOrRollback(tx)
 
+	_, err = service.CategoryRepository.FindById(ctx, tx, request.CategoryId)
+	if err != nil {
+		panic(exception.NewNotFoundError(err.Error()))
+	}
+
 	product := model.Product{
 		Name:       request.Name,
 		CategoryId: request.CategoryId,
@@ -63,13 +68,14 @@ func (service *ProductServiceImpl) Update(ctx context.Context, request *dto.Prod
 			panic(exception.NewNotFoundError(err.Error()))
 		}
 		product = model.Product{
+			Id:         request.Id,
 			Name:       request.Name,
-			CategoryId: request.Id,
+			CategoryId: request.CategoryId,
 		}
 	} else {
 		product = model.Product{
-			Name:       request.Name,
-			CategoryId: request.Id,
+			Id:   request.Id,
+			Name: request.Name,
 		}
 	}
 

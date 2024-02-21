@@ -4,6 +4,7 @@ import (
 	"github.com/julienschmidt/httprouter"
 	"task-one/category"
 	"task-one/configs/database"
+	"task-one/exception"
 	"task-one/product"
 )
 
@@ -14,6 +15,6 @@ func NewRouter() *httprouter.Router {
 	category.RegisterRoute(Router, db)
 	product.RegisterRoute(Router, db)
 
-	//Router.PanicHandler = exception.ErrorHandler
+	Router.PanicHandler = exception.ErrorHandler
 	return Router
 }
