@@ -12,5 +12,5 @@
 - [x] CRUD Product
 - [x] Product Unit Test
 - [ ] Implement Redis
-- [ ] Add Notificatin By Email
+- [ ] Add Notification By Email
 - [ ] Implement JWT for Auth
