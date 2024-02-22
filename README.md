@@ -11,7 +11,7 @@
 - [x] Category Unit Test
 - [x] CRUD Product
 - [x] Product Unit Test
-- [ ] Implement Redis
-- [ ] Implement Goroutine
+- [x] Implement Redis
+- [x] Implement Goroutine
 - [ ] Add Notification By Email
 - [ ] Implement JWT for Auth
