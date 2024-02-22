@@ -12,5 +12,6 @@
 - [x] CRUD Product
 - [x] Product Unit Test
 - [ ] Implement Redis
+- [ ] Implement Goroutine
 - [ ] Add Notification By Email
 - [ ] Implement JWT for Auth
