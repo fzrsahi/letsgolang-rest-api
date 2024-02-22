@@ -5,6 +5,7 @@ import (
 	"log"
 	"os"
 	"regexp"
+	"strconv"
 )
 
 const projectDirName = "task-one" // change to relevant project name
@@ -27,6 +28,12 @@ type DBConfig struct {
 	Test_URI   string
 }
 
+type RedisConfig struct {
+	Host     string
+	Password string
+	Db       int
+}
+
 type AppConfig struct {
 	Port string
 }
@@ -34,6 +41,7 @@ type AppConfig struct {
 type Config struct {
 	DB        *DBConfig
 	AppConfig *AppConfig
+	Redis     *RedisConfig
 }
 
 func GetConfig() *Config {
@@ -44,6 +52,10 @@ func GetConfig() *Config {
 	dbTestUri := os.Getenv("DB_TEST_URI")
 	port := os.Getenv("PORT")
 
+	redisHost := os.Getenv("REDIS_HOST")
+	redisPassword := os.Getenv("REDIS_PASSWORD")
+	redisDb, _ := strconv.Atoi(os.Getenv("REDIS_DB"))
+
 	return &Config{
 		DB: &DBConfig{
 			Connection: dbDriver,
@@ -52,6 +64,11 @@ func GetConfig() *Config {
 		},
 		AppConfig: &AppConfig{
 			Port: port,
+		},
+		Redis: &RedisConfig{
+			Host:     redisHost,
+			Password: redisPassword,
+			Db:       redisDb,
 		},
 	}
 }

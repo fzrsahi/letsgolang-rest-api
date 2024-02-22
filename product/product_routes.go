@@ -4,10 +4,13 @@ import (
 	"database/sql"
 	"github.com/julienschmidt/httprouter"
 	"task-one/category"
+	"task-one/configs/redis"
 )
 
 func RegisterRoute(router *httprouter.Router, db *sql.DB) {
-	productRepository := NewProductRepository()
+	rdb := redis.InitRedis()
+
+	productRepository := NewProductRepository(rdb)
 	categoryRepository := category.NewCategoryRepository()
 	productService := NewProductService(productRepository, db, categoryRepository)
 	productController := NewProductController(productService)

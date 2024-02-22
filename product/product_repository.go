@@ -3,7 +3,9 @@ package product
 import (
 	"context"
 	"database/sql"
+	"encoding/json"
 	"errors"
+	"task-one/configs/redis"
 	"task-one/helpers"
 	"task-one/product/model"
 )
@@ -14,13 +16,38 @@ type ProductRepository interface {
 	Delete(ctx context.Context, tx *sql.Tx, productId int)
 	FindAll(ctx context.Context, tx *sql.Tx) []model.Product
 	FindById(ctx context.Context, tx *sql.Tx, productId int) (model.Product, error)
+	UpdateCache(ctx context.Context, tx *sql.Tx)
 }
 
 type ProductRepositoryImpl struct {
+	rdb *redis.RedisClient
 }
 
-func NewProductRepository() ProductRepository {
-	return &ProductRepositoryImpl{}
+func (p *ProductRepositoryImpl) UpdateCache(ctx context.Context, tx *sql.Tx) {
+	query := "SELECT product.id,product.name,category.name FROM product INNER JOIN category ON product.category_id = category.id"
+	rows, err := tx.QueryContext(ctx, query)
+	helpers.PanicIfError(err)
+	defer rows.Close()
+
+	var products []model.Product
+
+	for rows.Next() {
+		product := model.Product{}
+		err := rows.Scan(&product.Id, &product.Name, &product.CategoryName)
+		helpers.PanicIfError(err)
+
+		products = append(products, product)
+	}
+
+	key := "list:products"
+	err = p.rdb.Set(ctx, key, products)
+	helpers.PanicIfError(err)
+}
+
+func NewProductRepository(rdb *redis.RedisClient) ProductRepository {
+	return &ProductRepositoryImpl{
+		rdb: rdb,
+	}
 }
 
 func (p *ProductRepositoryImpl) Save(ctx context.Context, tx *sql.Tx, product model.Product) model.Product {
@@ -38,6 +65,8 @@ func (p *ProductRepositoryImpl) Save(ctx context.Context, tx *sql.Tx, product mo
 	row := tx.QueryRowContext(ctx, query, product.Name, product.CategoryId)
 	err := row.Scan(&product.Id, &product.Name, &product.CategoryName)
 	helpers.PanicIfError(err)
+
+	p.UpdateCache(ctx, tx)
 
 	return product
 }
@@ -81,20 +110,35 @@ func (p *ProductRepositoryImpl) Delete(ctx context.Context, tx *sql.Tx, productI
 }
 
 func (p *ProductRepositoryImpl) FindAll(ctx context.Context, tx *sql.Tx) []model.Product {
-	query := "SELECT product.id,product.name,category.name FROM product INNER JOIN category ON product.category_id = category.id"
-	rows, err := tx.QueryContext(ctx, query)
-	helpers.PanicIfError(err)
-	defer rows.Close()
 	var products []model.Product
 
-	for rows.Next() {
-		product := model.Product{}
-		err := rows.Scan(&product.Id, &product.Name, &product.CategoryName)
+	key := "list:products"
+	productsCache, err := p.rdb.Get(ctx, key)
+	if err != nil {
+		query := "SELECT product.id,product.name,category.name FROM product INNER JOIN category ON product.category_id = category.id"
+		rows, err := tx.QueryContext(ctx, query)
 		helpers.PanicIfError(err)
+		defer rows.Close()
 
-		products = append(products, product)
+		for rows.Next() {
+			product := model.Product{}
+			err := rows.Scan(&product.Id, &product.Name, &product.CategoryName)
+			helpers.PanicIfError(err)
+
+			products = append(products, product)
+		}
+
+		err = p.rdb.Set(ctx, key, products)
+		if err != nil {
+			helpers.PanicIfError(err)
+		}
+		return products
 	}
 
+	err = json.Unmarshal([]byte(productsCache), &products)
+	if err != nil {
+		helpers.PanicIfError(err)
+	}
 	return products
 }
 
