@@ -24,6 +24,8 @@ type ProductRepositoryImpl struct {
 }
 
 func (p *ProductRepositoryImpl) UpdateCache(ctx context.Context, tx *sql.Tx) {
+	//defer wg.Done()
+
 	query := "SELECT product.id,product.name,category.name FROM product INNER JOIN category ON product.category_id = category.id"
 	rows, err := tx.QueryContext(ctx, query)
 	helpers.PanicIfError(err)
@@ -67,7 +69,6 @@ func (p *ProductRepositoryImpl) Save(ctx context.Context, tx *sql.Tx, product mo
 	helpers.PanicIfError(err)
 
 	p.UpdateCache(ctx, tx)
-
 	return product
 }
 
@@ -100,6 +101,7 @@ func (p *ProductRepositoryImpl) Update(ctx context.Context, tx *sql.Tx, product 
 	err = row.Scan(&product.Id, &product.Name, &product.CategoryName)
 	helpers.PanicIfError(err)
 
+	p.UpdateCache(ctx, tx)
 	return product
 }
 
@@ -107,11 +109,12 @@ func (p *ProductRepositoryImpl) Delete(ctx context.Context, tx *sql.Tx, productI
 	query := "DELETE FROM product where id = $1"
 	_, err := tx.ExecContext(ctx, query, productId)
 	helpers.PanicIfError(err)
+
+	p.UpdateCache(ctx, tx)
 }
 
 func (p *ProductRepositoryImpl) FindAll(ctx context.Context, tx *sql.Tx) []model.Product {
 	var products []model.Product
-
 	key := "list:products"
 	productsCache, err := p.rdb.Get(ctx, key)
 	if err != nil {
@@ -129,16 +132,12 @@ func (p *ProductRepositoryImpl) FindAll(ctx context.Context, tx *sql.Tx) []model
 		}
 
 		err = p.rdb.Set(ctx, key, products)
-		if err != nil {
-			helpers.PanicIfError(err)
-		}
+		helpers.PanicIfError(err)
 		return products
 	}
 
 	err = json.Unmarshal([]byte(productsCache), &products)
-	if err != nil {
-		helpers.PanicIfError(err)
-	}
+	helpers.PanicIfError(err)
 	return products
 }
 

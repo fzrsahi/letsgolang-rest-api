@@ -3,6 +3,7 @@ package product
 import (
 	"context"
 	"database/sql"
+	"sync"
 	"task-one/category"
 	"task-one/exception"
 	"task-one/helpers"
@@ -23,16 +24,16 @@ type ProductServiceImpl struct {
 	Repository         ProductRepository
 	DB                 *sql.DB
 	CategoryRepository category.CategoryRepository
+	Wg                 *sync.WaitGroup
 }
 
-func NewProductService(repository ProductRepository, DB *sql.DB, categoryRepository category.CategoryRepository) ProductService {
-	return &ProductServiceImpl{Repository: repository, DB: DB, CategoryRepository: categoryRepository}
+func NewProductService(repository ProductRepository, DB *sql.DB, categoryRepository category.CategoryRepository, wg *sync.WaitGroup) ProductService {
+	return &ProductServiceImpl{Repository: repository, DB: DB, CategoryRepository: categoryRepository, Wg: wg}
 }
 
 func (service *ProductServiceImpl) Create(ctx context.Context, request *dto.ProductCreateDto) response.ProductResponse {
 	tx, err := service.DB.Begin()
 	helpers.PanicIfError(err)
-
 	defer helpers.CommitOrRollback(tx)
 
 	_, err = service.CategoryRepository.FindById(ctx, tx, request.CategoryId)
@@ -40,14 +41,23 @@ func (service *ProductServiceImpl) Create(ctx context.Context, request *dto.Prod
 		panic(exception.NewNotFoundError(err.Error()))
 	}
 
+	productChannel := make(chan model.Product)
+	defer close(productChannel)
 	product := model.Product{
 		Name:       request.Name,
 		CategoryId: request.CategoryId,
 	}
 
-	product = service.Repository.Save(ctx, tx, product)
-	return model.ToProductResponse(product)
+	service.Wg.Add(1)
+	go func() {
+		defer service.Wg.Done()
+		product = service.Repository.Save(ctx, tx, product)
+		productChannel <- product
+	}()
 
+	product = <-productChannel
+	defer service.Wg.Wait()
+	return model.ToProductResponse(product)
 }
 
 func (service *ProductServiceImpl) Update(ctx context.Context, request *dto.ProductUpdateDto) response.ProductResponse {
@@ -79,7 +89,17 @@ func (service *ProductServiceImpl) Update(ctx context.Context, request *dto.Prod
 		}
 	}
 
-	product = service.Repository.Update(ctx, tx, product)
+	productChannel := make(chan model.Product)
+	defer close(productChannel)
+	service.Wg.Add(1)
+	go func() {
+		defer service.Wg.Done()
+		product = service.Repository.Update(ctx, tx, product)
+		productChannel <- product
+	}()
+
+	product = <-productChannel
+	defer service.Wg.Wait()
 	return model.ToProductResponse(product)
 
 }
@@ -94,7 +114,13 @@ func (service *ProductServiceImpl) Delete(ctx context.Context, productId int) {
 		panic(exception.NewNotFoundError(err.Error()))
 	}
 
-	service.Repository.Delete(ctx, tx, product.Id)
+	service.Wg.Add(1)
+	go func() {
+		defer service.Wg.Done()
+		service.Repository.Delete(ctx, tx, product.Id)
+	}()
+
+	service.Wg.Wait()
 }
 
 func (service *ProductServiceImpl) FindById(ctx context.Context, productId int) response.ProductResponse {
@@ -102,12 +128,29 @@ func (service *ProductServiceImpl) FindById(ctx context.Context, productId int) 
 	helpers.PanicIfError(err)
 	defer helpers.CommitOrRollback(tx)
 
-	product, err := service.Repository.FindById(ctx, tx, productId)
-	if err != nil {
-		panic(exception.NewNotFoundError(err.Error()))
+	productChannel := make(chan struct {
+		Product model.Product
+		Error   error
+	})
+	service.Wg.Add(1)
+	defer close(productChannel)
+
+	go func() {
+		defer service.Wg.Done()
+		product, err := service.Repository.FindById(ctx, tx, productId)
+		productChannel <- struct {
+			Product model.Product
+			Error   error
+		}{product, err}
+	}()
+
+	productResult := <-productChannel
+	if productResult.Error != nil {
+		panic(exception.NewNotFoundError(productResult.Error.Error()))
 	}
 
-	return model.ToProductResponse(product)
+	defer service.Wg.Wait()
+	return model.ToProductResponse(productResult.Product)
 }
 
 func (service *ProductServiceImpl) FindAll(ctx context.Context) []response.ProductResponse {
@@ -115,6 +158,17 @@ func (service *ProductServiceImpl) FindAll(ctx context.Context) []response.Produ
 	helpers.PanicIfError(err)
 	defer helpers.CommitOrRollback(tx)
 
-	products := service.Repository.FindAll(ctx, tx)
+	productsChannel := make(chan []model.Product)
+	defer close(productsChannel)
+	service.Wg.Add(1)
+
+	go func() {
+		defer service.Wg.Done()
+		products := service.Repository.FindAll(ctx, tx)
+		productsChannel <- products
+	}()
+
+	products := <-productsChannel
+	defer service.Wg.Wait()
 	return model.ToProductResponses(products)
 }

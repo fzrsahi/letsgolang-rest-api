@@ -8,6 +8,7 @@ import (
 	"github.com/julienschmidt/httprouter"
 	_ "github.com/lib/pq"
 	"io/ioutil"
+	"log"
 	"net/http"
 	"net/http/httptest"
 	"strconv"
@@ -15,6 +16,7 @@ import (
 	"task-one/category"
 	"task-one/category/model"
 	"task-one/configs/database"
+	"task-one/configs/redis"
 	"task-one/exception"
 	product_model "task-one/product/model"
 	"testing"
@@ -117,7 +119,9 @@ func TestUpdateProduct(t *testing.T) {
 	categoryUpdate := categoryRepository.Save(ctx, tx, model.Category{
 		Name: "Alat Rumah",
 	})
-	productRepository := NewProductRepository()
+
+	rdb := redis.InitRedis()
+	productRepository := NewProductRepository(rdb)
 	product := productRepository.Save(ctx, tx, product_model.Product{
 		Name:       "Table",
 		CategoryId: category.Id,
@@ -171,7 +175,10 @@ func TestGetProductById(t *testing.T) {
 	category := categoryRepository.Save(ctx, tx, model.Category{
 		Name: "Furniture",
 	})
-	productRepository := NewProductRepository()
+	log.Println(category)
+	rdb := redis.InitRedis()
+	productRepository := NewProductRepository(rdb)
+	log.Println("wow")
 	product := productRepository.Save(ctx, tx, product_model.Product{
 		Name:       "Table",
 		CategoryId: category.Id,
@@ -223,7 +230,10 @@ func TestDeleteProduct(t *testing.T) {
 	category := categoryRepository.Save(ctx, tx, model.Category{
 		Name: "Furniture",
 	})
-	productRepository := NewProductRepository()
+
+	rdb := redis.InitRedis()
+	productRepository := NewProductRepository(rdb)
+
 	product := productRepository.Save(ctx, tx, product_model.Product{
 		Name:       "Table",
 		CategoryId: category.Id,
