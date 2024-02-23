@@ -13,5 +13,5 @@
 - [x] Product Unit Test
 - [x] Implement Redis
 - [x] Implement Goroutine
-- [ ] Add Notification By Email
+- [x] Add Notification By Email
 - [ ] Implement JWT for Auth

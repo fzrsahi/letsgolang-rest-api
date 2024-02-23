@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"sync"
 	"task-one/category"
+	"task-one/configs/mail"
 	"task-one/exception"
 	"task-one/helpers"
 	"task-one/product/dto"
@@ -25,10 +26,11 @@ type ProductServiceImpl struct {
 	DB                 *sql.DB
 	CategoryRepository category.CategoryRepository
 	Wg                 *sync.WaitGroup
+	Smtp               mail.Mailer
 }
 
-func NewProductService(repository ProductRepository, DB *sql.DB, categoryRepository category.CategoryRepository, wg *sync.WaitGroup) ProductService {
-	return &ProductServiceImpl{Repository: repository, DB: DB, CategoryRepository: categoryRepository, Wg: wg}
+func NewProductService(repository ProductRepository, DB *sql.DB, categoryRepository category.CategoryRepository, wg *sync.WaitGroup, smtp mail.Mailer) ProductService {
+	return &ProductServiceImpl{Repository: repository, DB: DB, CategoryRepository: categoryRepository, Wg: wg, Smtp: smtp}
 }
 
 func (service *ProductServiceImpl) Create(ctx context.Context, request *dto.ProductCreateDto) response.ProductResponse {
@@ -40,6 +42,14 @@ func (service *ProductServiceImpl) Create(ctx context.Context, request *dto.Prod
 	if err != nil {
 		panic(exception.NewNotFoundError(err.Error()))
 	}
+
+	go func() {
+		to := []string{"fazrul.anugrah17@gmail.com", "fazrulsahi@gmail.com"}
+		cc := []string{"tralalala@gmail.com"}
+		subject := "Terbaru Asli!"
+		message := "Hello, Kamu! Kami baru saja meluncurkan Produk baru loh! "
+		service.Smtp.SendMail(to, cc, subject, message)
+	}()
 
 	productChannel := make(chan model.Product)
 	defer close(productChannel)
@@ -56,6 +66,7 @@ func (service *ProductServiceImpl) Create(ctx context.Context, request *dto.Prod
 	}()
 
 	product = <-productChannel
+
 	defer service.Wg.Wait()
 	return model.ToProductResponse(product)
 }

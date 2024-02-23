@@ -38,10 +38,19 @@ type AppConfig struct {
 	Port string
 }
 
+type MailConfig struct {
+	SmtpHost     string
+	SmtpPort     int
+	SenderName   string
+	AuthEmail    string
+	AuthPassword string
+}
+
 type Config struct {
 	DB        *DBConfig
 	AppConfig *AppConfig
 	Redis     *RedisConfig
+	Mail      *MailConfig
 }
 
 func GetConfig() *Config {
@@ -56,6 +65,12 @@ func GetConfig() *Config {
 	redisPassword := os.Getenv("REDIS_PASSWORD")
 	redisDb, _ := strconv.Atoi(os.Getenv("REDIS_DB"))
 
+	smtpHost := os.Getenv("CONFIG_SMTP_HOST")
+	smtpPort, _ := strconv.Atoi(os.Getenv("CONFIG_SMTP_PORT"))
+	senderName := os.Getenv("CONFIG_SENDER_NAME")
+	authEmail := os.Getenv("CONFIG_AUTH_EMAIL")
+	authPassword := os.Getenv("CONFIG_AUTH_PASSWORD")
+
 	return &Config{
 		DB: &DBConfig{
 			Connection: dbDriver,
@@ -69,6 +84,13 @@ func GetConfig() *Config {
 			Host:     redisHost,
 			Password: redisPassword,
 			Db:       redisDb,
+		},
+		Mail: &MailConfig{
+			SmtpHost:     smtpHost,
+			SmtpPort:     smtpPort,
+			SenderName:   senderName,
+			AuthEmail:    authEmail,
+			AuthPassword: authPassword,
 		},
 	}
 }
